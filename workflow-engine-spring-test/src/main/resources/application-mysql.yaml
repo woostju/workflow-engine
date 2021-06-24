@@ -1,0 +1,23 @@
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        url: jdbc:mysql://localhost:3306/workflow?allowMultiQueries=true&serverTimezone=Asia/Shanghai
+        username: root
+        password: mysql
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        filters: stat,wall,log4j
+        maxActive: 20
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+        connection-properties:
+            druid.stat.merggSql: true
+            druid.stat.slowSqlMillis: 5000

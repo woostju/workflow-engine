@@ -1,0 +1,210 @@
+{
+  "userTasks": {
+    "start": {
+      "form": {
+        "fields": [
+          {
+            "id": "startTime",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "endTime",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "reason",
+            "visible": true,
+            "editable": true
+          }
+        ]
+      }
+    },
+    "user_task2": {
+      "assigneeGroupIds": [
+        "hr"
+      ],
+      "userActions": [
+        {
+          "type": "CLAIM",
+          "displayName": "认领"
+        },
+        {
+          "type": "SUBMIT",
+          "displayName": "提交"
+        }
+      ],
+      "form": {
+        "fields": [
+          {
+            "id": "startTime",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "endTime",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "approve",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "reason",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "rejectReason",
+            "visible": true,
+            "editable": true
+          }
+        ]
+      }
+    },
+    "user_task3": {
+      "assigneeUserIds": [
+        "smith"
+      ],
+      "userActions": [
+        {
+          "type": "SUBMIT",
+          "displayName": "提交"
+        }
+      ],
+      "form": {
+        "fields": [
+          {
+            "id": "startTime",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "endTime",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "reason",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "approve",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "rejectReason",
+            "visible": true,
+            "editable": true
+          }
+        ]
+      }
+    },
+    "user_task1": {
+      "assigneeUserIds": ["instance.creator"],
+      "userActions": [
+        {
+          "type": "SUBMIT",
+          "displayName": "提交"
+        },
+        {
+          "type": "USER_TASK_SAVE",
+          "displayName": "保存"
+        }
+      ],
+      "form": {
+        "fields": [
+          {
+            "id": "startTime",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "endTime",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "days",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "approve",
+            "visible": true,
+            "editable": false
+          },
+          {
+            "id": "reason",
+            "visible": true,
+            "editable": true
+          },
+          {
+            "id": "rejectReason",
+            "visible": true,
+            "editable": false
+          }
+        ]
+      }
+    }
+  },
+  "form": {
+    "fields": [
+      {
+        "id": "startTime",
+        "name": "开始时间",
+        "placeholder": "请假开始时间",
+        "required": true,
+        "fieldType": "DATETIME",
+        "fieldValueType": "DATETIME_"
+      },
+      {
+        "id": "endTime",
+        "name": "结束时间",
+        "placeholder": "请假结束时间",
+        "required": true,
+        "fieldType": "DATETIME",
+        "fieldValueType": "DATETIME_"
+      },
+      {
+        "id": "days",
+        "name": "请假天数",
+        "placeholder": "请假天数",
+        "required": true,
+        "fieldType": "TEXT_FIELD",
+        "fieldValueType": "INT_"
+      },
+      {
+        "id": "reason",
+        "name": "理由",
+        "placeholder": "请输入理由",
+        "required": true,
+        "fieldType": "TEXT_FIELD",
+        "fieldValueType": "STRING_"
+      },
+      {
+        "id": "approve",
+        "name": "是否通过",
+        "placeholder": "请选择",
+        "required": true,
+        "fieldType": "CHECKBOX",
+        "fieldValueType": "BOOLEAN_",
+        "defaultValue": false
+      },
+      {
+        "id": "rejectReason",
+        "name": "拒绝原因",
+        "placeholder": "请输入拒绝原因",
+        "required": true,
+        "fieldType": "TEXT_FIELD",
+        "fieldValueType": "STRING_"
+      }
+    ]
+  },
+  "version": "1.0"
+}

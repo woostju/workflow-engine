@@ -1,0 +1,23 @@
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        url: jdbc:oracle:thin:@192.168.1.127:1521:orcl
+        username: JAMES
+        password: james
+        driver-class-name: oracle.jdbc.OracleDriver
+        filters: stat,wall,log4j
+        maxActive: 20
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+        connection-properties:
+            druid.stat.merggSql: true
+            druid.stat.slowSqlMillis: 5000

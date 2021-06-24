@@ -1,0 +1,98 @@
+{
+  "userTasks": {
+    "start": {
+      "form": {
+        "fields": [
+          {
+            "id": "level",
+            "visible": true,
+            "editable": true
+          }
+        ]
+      }
+    },
+    "user_task1": {
+      "assigneeUserIds": ["james"],
+      "userActions": [
+        {
+          "type": "SUBMIT",
+          "displayName": "提交"
+        },
+        {
+          "type": "USER_TASK_SAVE",
+          "displayName": "保存"
+        }
+      ],
+      "form": {
+        "fields": [
+          {
+            "id": "level",
+            "visible": true,
+            "editable": false
+          }
+        ]
+      },
+      "timer": {
+        "timer1": {
+          "duration": 30,
+          "timeUnit": "SECONDS"
+        }
+      }
+    },
+    "user_task2": {
+      "assigneeUserIds": ["tom"],
+      "userActions": [
+        {
+          "type": "SUBMIT",
+          "displayName": "提交"
+        }
+      ],
+      "form": {
+        "fields": [
+          {
+            "id": "level",
+            "visible": true,
+            "editable": false
+          }
+        ]
+      },
+      "timer": {
+        "timer2": {
+          "extension": "depends on level"
+        }
+      }
+    },
+    "user_task3": {
+      "assigneeUserIds": ["tom"],
+      "userActions": [
+        {
+          "type": "SUBMIT",
+          "displayName": "提交"
+        }
+      ],
+      "form": {
+        "fields": [
+          {
+            "id": "level",
+            "visible": true,
+            "editable": false
+          }
+        ]
+      }
+    }
+  },
+  "form": {
+    "fields": [
+      {
+        "id": "level",
+        "name": "级别",
+        "placeholder": "请填写级别",
+        "required": true,
+        "fieldType": "DROPDOWN_LIST_SINGLE",
+        "fieldValueType": "INT_",
+        "options": [1, 2, 3, 4, 5]
+      }
+    ]
+  },
+  "version": "1.0"
+}

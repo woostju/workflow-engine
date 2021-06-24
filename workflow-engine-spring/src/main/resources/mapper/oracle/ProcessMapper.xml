@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.github.bryx.workflow.mapper.process.ProcessMapper">
+<resultMap type="com.github.bryx.workflow.domain.process.runtime.TaskObject" id="TaskObjectResultMap" autoMapping="true">
+        <id property="id" column="id_"/>
+        <result property="definitionId" column="task_def_key_"/>
+        <result property="name" column="name_"/>
+        <result property="documentation" column="description_"/>
+        <result property="executorId" column="executor_id_"/>
+        <result property="processId" column="proc_inst_id_"/>
+        <result property="executionId" column="execution_id_"/>
+        <result property="executionTime" column="end_time_"/>
+        <result property="startTime" column="create_time_"/>
+        <result property="claimTime" column="claim_time_"/>
+        <result property="state" column="state_"/>
+        <collection property="assignees" ofType="com.github.bryx.workflow.domain.process.runtime.TaskObjectAssignee" >
+            <result property="taskId" column="TASK_ID_"></result>
+            <result property="assigneeId" column="ASSIGNEE_ID_"></result>
+            <result property="assigneeType" column="ASSIGNEE_TYPE_"></result>
+        </collection>
+    </resultMap>
+    
+ 	 <select id="getTasksByProcessId" resultMap="TaskObjectResultMap" flushCache="true">
+         select * from ACT_RU_TASK left join
+             ACT_TASK_ASSIGNEE on ACT_RU_TASK.id_=ACT_TASK_ASSIGNEE.task_id_
+                where ACT_RU_TASK.proc_inst_id_=#{processId}
+ 	 </select>
+
+    <select id="getTasksByIds" resultMap="TaskObjectResultMap" flushCache="true">
+        select * from ACT_RU_TASK left join
+            ACT_TASK_ASSIGNEE on ACT_RU_TASK.id_=ACT_TASK_ASSIGNEE.task_id_
+            where ACT_RU_TASK.ID_ in
+            <foreach collection="list" item="taskId" open="(" close=")" separator=",">
+                #{taskId}
+            </foreach>
+    </select>
+</mapper>

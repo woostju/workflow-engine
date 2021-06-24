@@ -19,10 +19,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * 1. 独立与外部应用的mybatisplus及mybatis配置，但是数据源使用外部的
- * 2. 初始化：
- *      2.1 timer配置
- *      2.2 SpringUtil设置applicationContext
+ * 独立与外部应用的mybatisplus及mybatis配置，但是数据源使用外部的
  *
  * @Author jameswu
  * @Date 2021/6/21
@@ -30,7 +27,7 @@ import javax.sql.DataSource;
 @Configuration
 @MapperScan(basePackages = {"com.github.bryx.workflow.mapper.process","com.github.bryx.workflow.mapper"},
         sqlSessionFactoryRef = "workflowSqlSessionFactory")
-public class MyBatisConfiguration {
+public class ORMConfiguration {
 
     @Autowired
     WorkflowEngineProperties workflowEngineProperties;
@@ -39,6 +36,7 @@ public class MyBatisConfiguration {
     public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
         MybatisSqlSessionFactoryBean sqlSessionFactory = new MybatisSqlSessionFactoryBean();
         sqlSessionFactory.setDataSource(dataSource);
+        sqlSessionFactory.setPlugins(paginationInterceptor());
         String mapperResourceLocation = "";
         switch (workflowEngineProperties.getDbType()){
             case MYSQL:
@@ -79,7 +77,6 @@ public class MyBatisConfiguration {
         return globalConfig;
     }
 
-    @Bean
     public MybatisPlusInterceptor paginationInterceptor() {
         MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
         PaginationInnerInterceptor innerInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);

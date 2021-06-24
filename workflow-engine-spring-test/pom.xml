@@ -15,7 +15,6 @@
     <description>Workflow Engine Unittest</description>
     <properties>
         <java.version>1.8</java.version>
-        <mybatis.version>2.1.4</mybatis.version>
         <logback.version>1.2.3</logback.version>
         <fasterxml.version>3.1.4</fasterxml.version>
         <activiti.version>6.0.0</activiti.version>

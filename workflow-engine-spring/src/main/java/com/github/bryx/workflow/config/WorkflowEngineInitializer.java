@@ -11,6 +11,12 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 /**
+ *
+ *
+ * 初始化：
+ *     1. timer配置
+ *     2. SpringUtil设置applicationContext
+ *
  * @Author jameswu
  * @Date 2021/6/21
  **/

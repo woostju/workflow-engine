@@ -56,7 +56,7 @@ public class WorkflowBuildTimeQueryImpl implements WorkflowBuildTimeQuery {
                         .eq(WorkflowDefRev::getStatus, WorkflowDefRev.WorkflowDefRevStatus.ENABLE)
                         .eq(WorkflowDefRev::getDeleted, false))
                 .orderByDesc(WorkflowDefRev::getCreateTime)
-                .page(new Page<WorkflowDefRev>(1, 2)).getRecords();
+                .page(new Page<WorkflowDefRev>(1, 1)).getRecords();
         if (CollectionsUtil.isNotEmpty(workflowDefRevs)){
             return workflowDefRevs.get(0);
         }

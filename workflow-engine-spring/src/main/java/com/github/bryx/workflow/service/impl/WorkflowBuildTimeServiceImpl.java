@@ -179,8 +179,10 @@ public class WorkflowBuildTimeServiceImpl implements WorkflowBuildTimeService {
         workflowDef.setStatus(updateWorkflowDefDto.getStatus());
         workflowDef.setLastModifyTime(new Date());
         workflowDefDao.updateById(workflowDef);
-        // 更新流程定义的发起人权限
-        this.updateWorkflowDefInitiators_(updateWorkflowDefDto.getId(), updateWorkflowDefDto.getInitiatorIds(), updateWorkflowDefDto.getInitiatorGroupIds());
+        if (updateWorkflowDefDto.getInitiatorIds() != null || updateWorkflowDefDto.getInitiatorGroupIds() != null){
+            // 都是null的话，不做更新操作, 更新流程定义的发起人权限
+            this.updateWorkflowDefInitiators_(updateWorkflowDefDto.getId(), updateWorkflowDefDto.getInitiatorIds(), updateWorkflowDefDto.getInitiatorGroupIds());
+        }
     }
 
     @Override

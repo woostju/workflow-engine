@@ -3,6 +3,7 @@ package com.github.bryxtest.workflow;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.bryx.workflow.mapper.WorkflowDefRevMapper;
+import com.github.bryx.workflow.mapper.process.ProcessMapper;
 import com.github.bryxtest.WorkflowApplication;
 import com.github.bryx.workflow.exception.WorkflowRuntimeException;
 import com.github.bryx.workflow.util.CollectionsUtil;
@@ -94,6 +95,8 @@ public class WorkflowBuildTimeTest {
 
     @Autowired
     WorkflowDefRevMapper workflowDefRevMapper;
+    @Autowired
+    ProcessMapper processMapper;
 
     @Test
     public void testMultipleWorkflowDefRevsSuccess() throws Exception {
@@ -128,8 +131,6 @@ public class WorkflowBuildTimeTest {
             workflowBuildTimeService.publishWorkflowDefDraft(publishWorkflowDefDraftDto);
         }
 
-        List<WorkflowDefRev> records = workflowDefRevMapper.selectPage(new Page<>(1, 2), null).getRecords();
-
         {
             // 此时有两个激活的版本
             QueryWorkflowDefRevDto<WorkflowDefRev> queryWorkflowDefRevsDto = new QueryWorkflowDefRevDto<>();
@@ -139,10 +140,11 @@ public class WorkflowBuildTimeTest {
             Page<WorkflowDefRev> workflowDefRevPage = workflowBuildTimeService.query().queryWorkflowDefRevs(queryWorkflowDefRevsDto);
             WorkflowDefRev latestEnabledWorkflowDefRev = workflowBuildTimeService.query().getLatestEnabledWorkflowDefRev(workflowDefCreated.getId());
             assertArrayEquals(new Object[]{
-                           1, false
+                           1, 2l, true
                     }
                     , new Object[]{
                             workflowDefRevPage.getRecords().size(),
+                            workflowDefRevPage.getTotal(),
                             latestEnabledWorkflowDefRev.getProcessConfig().getUserTasks().get("user_task1").getAssigneeUserIds().contains("smith")
                     });
         }

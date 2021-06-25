@@ -1,12 +1,15 @@
 package com.github.bryx.workflow.command.executor;
 
+import com.github.bryx.workflow.config.WorkflowEngineProperties;
+import com.github.bryx.workflow.domain.WorkflowTaskInstance;
 import com.github.bryx.workflow.domain.process.runtime.TaskObject;
+import com.github.bryx.workflow.exception.WorkflowRuntimeException;
 import com.github.bryx.workflow.service.process.ProcessService;
 import com.github.bryx.workflow.domain.WorkflowDefProcessConfig;
 import com.github.bryx.workflow.domain.WorkflowDefRev;
 import com.github.bryx.workflow.domain.WorkflowInstance;
 import com.github.bryx.workflow.dto.runtime.CreateWorkflowTaskInstanceDto;
-import com.github.bryx.workflow.dto.runtime.CreateWorkflowTimerInstanceDto;
+import com.github.bryx.workflow.dto.runtime.CreateWorkflowTimerJobDto;
 import com.github.bryx.workflow.util.CollectionsUtil;
 import com.github.bryx.workflow.util.StringUtil;
 import com.github.bryx.workflow.interceptor.WorkflowInstanceInterceptor;
@@ -34,49 +37,55 @@ public class CommandExecutorHelper {
     @Autowired
     ProcessService processService;
 
-    public List<String> createWorkflowTaskInstances(String workflowInstanceId, WorkflowDefRev workflowDefRev, List<TaskObject> tasks){
+    @Autowired
+    WorkflowEngineProperties workflowEngineProperties;
+
+    public List<WorkflowTaskInstance> createWorkflowTaskInstances(String workflowInstanceId, WorkflowDefRev workflowDefRev, List<TaskObject> tasks){
         // 创建workflow task instances
-        List<String> workflowTaskInstanceIds = Lists.newArrayList();
+        List<WorkflowTaskInstance> workflowTaskInstancess = Lists.newArrayList();
         tasks.forEach(task->{
-            String workflowTaskInstanceId = workflowRuntimeService.createWorkflowTaskInstance(CreateWorkflowTaskInstanceDto.builder()
+            WorkflowTaskInstance workflowTaskInstance = workflowRuntimeService.createWorkflowTaskInstance(CreateWorkflowTaskInstanceDto.builder()
                     .name(task.getName())
                     .processTaskDefId(task.getDefinitionId())
                     .processTaskId(task.getId())
                     .workflowInstanceId(workflowInstanceId).build());
-            workflowTaskInstanceIds.add(workflowTaskInstanceId);
+            workflowTaskInstancess.add(workflowTaskInstance);
         });
-        return workflowTaskInstanceIds;
+        return workflowTaskInstancess;
     }
 
     /**
      * 检测taskObjects上是否有timer的配置，如果配置了extension则要求interceptor创建timer,如果有配置了cron和duration则创建
-     * @param tasks
+     * @param taskInstances
      * @param workflowInstance
      * @param processConfig
      * @param workflowInstanceInterceptor
      */
-    public void createWorkflowTimerInstancesIfNecessary(List<TaskObject> tasks, WorkflowInstance workflowInstance, WorkflowDefProcessConfig processConfig, WorkflowInstanceInterceptor workflowInstanceInterceptor){
-        tasks.forEach(taskObject->{
-            Map<String, WorkflowDefProcessConfig.TimerConfig> timerConfigs = processConfig.getUserTasks().get(taskObject.getDefinitionId()).getTimer();
+    public void createWorkflowTimerJobsIfNecessary(WorkflowInstance workflowInstance, List<WorkflowTaskInstance> taskInstances, WorkflowDefProcessConfig processConfig, WorkflowInstanceInterceptor workflowInstanceInterceptor){
+        if (!workflowEngineProperties.isTimerEnable()){
+            return;
+        }
+        taskInstances.forEach(taskInstance->{
+            Map<String, WorkflowDefProcessConfig.TimerConfig> timerConfigs = processConfig.getUserTasks().get(taskInstance.getProcessTaskDefId()).getTimer();
             if (CollectionsUtil.mapNotEmpty(timerConfigs)){
                 timerConfigs.forEach((timerDefinitionId, timerConfig)->{
                     if(StringUtil.isNotEmpty(timerConfig.getExtension())){
                         timerConfig.setTimerDefinitionId(timerDefinitionId);
                         // interceptor负责创建timer
-                       workflowInstanceInterceptor.createTimerWhenExtensionConfigured(workflowInstance, taskObject, timerConfig);
+                       workflowInstanceInterceptor.createTimerJobWhenExtensionConfigured(workflowInstance, taskInstance, timerConfig);
                     }else{
-                        CreateWorkflowTimerInstanceDto createWorkflowTimerInstanceDto = new CreateWorkflowTimerInstanceDto();
-                        createWorkflowTimerInstanceDto.setProcessTaskId(taskObject.getId());
-                        createWorkflowTimerInstanceDto.setTimerDefinitionId(timerDefinitionId);
-                        if (StringUtil.isNotEmpty(timerConfig.getCron())){
-                            // create cron timer
-                            createWorkflowTimerInstanceDto.setCron(timerConfig.getCron());
-                        }else if(timerConfig.getDuration()!=null && timerConfig.getTimeUnit()!=null){
-                            // create duration timer
-                            createWorkflowTimerInstanceDto.setDuration(timerConfig.getDuration());
-                            createWorkflowTimerInstanceDto.setTimeUnit(timerConfig.getTimeUnit());
+                        if(timerConfig.getDuration() == null || timerConfig.getTimeUnit() == null){
+                            throw new WorkflowRuntimeException("can not create timer,duration and timeunit required");
                         }
-                        workflowRuntimeService.createWorkflowTimerInstance(createWorkflowTimerInstanceDto);
+                        CreateWorkflowTimerJobDto createWorkflowTimerJobDto = null;
+                        if (timerConfig.getRepeat()!=null && timerConfig.getRepeat()>0){
+                            // create cron timer
+                            createWorkflowTimerJobDto = CreateWorkflowTimerJobDto.ofTypeCycle(taskInstance.getId(), timerDefinitionId, timerConfig.getRepeat(), timerConfig.getDuration(), timerConfig.getTimeUnit(), null);
+                        }else{
+                            // create duration timer
+                            createWorkflowTimerJobDto = CreateWorkflowTimerJobDto.ofTypeDuration(taskInstance.getId(), timerDefinitionId, timerConfig.getDuration(), timerConfig.getTimeUnit());
+                        }
+                        workflowRuntimeService.createWorkflowTimerJob(createWorkflowTimerJobDto);
                     }
                 });
             }

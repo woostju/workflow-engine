@@ -1,5 +1,6 @@
 package com.github.bryx.workflow.service;
 
+import com.github.bryx.workflow.domain.WorkflowTaskInstance;
 import com.github.bryx.workflow.dto.runtime.*;
 
 import java.util.List;
@@ -35,9 +36,9 @@ public interface WorkflowRuntimeService {
 
     public void updateWorkflowInstance(UpdateWorkflowInstanceDto dto);
 
-    public String createWorkflowTaskInstance(CreateWorkflowTaskInstanceDto dto);
+    public WorkflowTaskInstance createWorkflowTaskInstance(CreateWorkflowTaskInstanceDto dto);
 
-    public void createWorkflowTimerInstance(CreateWorkflowTimerInstanceDto createWorkflowTimerInstanceDto);
+    public String createWorkflowTimerJob(CreateWorkflowTimerJobDto createWorkflowTimerJobDto);
 
     public void updateWorkflowTaskInstance(UpdateWorkflowTaskInstanceDto dto);
 

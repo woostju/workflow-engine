@@ -18,8 +18,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @CommandConfiguration(executor = TimerTriggerCommandExecutor.class)
-public class TimerTriggerCommand extends WorkflowCommand {
+public class TimerTriggerCommand extends BaseCommand {
+    /**
+     * 流程任务
+     */
     private WorkflowTaskInstance workflowTaskInstance;
+    /**
+     * 流程实例
+     */
     private WorkflowInstance workflowInstance;
+    /**
+     * Timer实例
+     */
     private WorkflowTimerInstance workflowTimerInstance;
 }

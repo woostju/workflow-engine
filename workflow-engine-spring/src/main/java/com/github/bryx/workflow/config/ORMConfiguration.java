@@ -38,18 +38,20 @@ public class ORMConfiguration {
         sqlSessionFactory.setDataSource(dataSource);
         sqlSessionFactory.setPlugins(paginationInterceptor());
         String mapperResourceLocation = "";
+        // 预留不同数据库类型不同mapper.xml，目前不需要
+        // 临时不同数据库类型使用同一mapper.xml
         switch (workflowEngineProperties.getDbType()){
             case MYSQL:
                 mapperResourceLocation = "classpath*:/mapper/mysql/*.xml";
                 break;
             case ORACLE:
-                mapperResourceLocation = "classpath*:/mapper/oracle/*.xml";
+                mapperResourceLocation = "classpath*:/mapper/mysql/*.xml";
                 break;
             case ORACLE_12C:
-                mapperResourceLocation = "classpath*:/mapper/oracle/*.xml";
+                mapperResourceLocation = "classpath*:/mapper/mysql/*.xml";
                 break;
             case POSTGRES:
-                mapperResourceLocation = "classpath*:/mapper/postgres/*.xml";
+                mapperResourceLocation = "classpath*:/mapper/mysql/*.xml";
                 break;
         }
         sqlSessionFactory.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(mapperResourceLocation));

@@ -42,6 +42,7 @@ public class WorkflowBuildTimeServiceImpl implements WorkflowBuildTimeService {
     @Autowired
     WorkflowObjectEntityRelationDao workflowObjectEntityRelationDao;
 
+    @Autowired
     WorkflowBuildTimeQuery workflowBuildTimeQuery;
 
     private void updateWorkflowDefInitiators_(String workflowDefId, List<String> initiatorIds, List<String> initiatorGroupIds) {
@@ -269,13 +270,6 @@ public class WorkflowBuildTimeServiceImpl implements WorkflowBuildTimeService {
 
     @Override
     public WorkflowBuildTimeQuery query() {
-        if (workflowBuildTimeQuery == null){
-            WorkflowBuildTimeQueryImpl workflowBuildTimeQueryImpl = new WorkflowBuildTimeQueryImpl();
-            workflowBuildTimeQueryImpl.setWorkflowDefDao(workflowDefDao);
-            workflowBuildTimeQueryImpl.setWorkflowDefRevDao(workflowDefRevDao);
-            workflowBuildTimeQueryImpl.setWorkflowObjectEntityRelationDao(workflowObjectEntityRelationDao);
-            this.workflowBuildTimeQuery = workflowBuildTimeQueryImpl;
-        }
         return this.workflowBuildTimeQuery;
     }
 }

@@ -1,7 +1,9 @@
 package com.github.bryx.workflow.service.impl;
 
+import com.github.bryx.workflow.domain.WorkflowTimerJob;
 import com.github.bryx.workflow.domain.process.buildtime.TaskTimer;
 import com.github.bryx.workflow.domain.process.runtime.TaskObject;
+import com.github.bryx.workflow.service.dao.WorkflowTimerJobDao;
 import com.github.bryx.workflow.service.process.ProcessService;
 import com.github.bryx.workflow.service.dao.WorkflowInstanceDao;
 import com.github.bryx.workflow.domain.WorkflowInstance;
@@ -15,6 +17,7 @@ import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
  * @Author jameswu
  * @Date 2021/6/10
  **/
-@Data
+@Service
 public class WorkflowRuntimeQueryImpl implements WorkflowRuntimeQuery {
 
     @Autowired
@@ -36,6 +39,8 @@ public class WorkflowRuntimeQueryImpl implements WorkflowRuntimeQuery {
     @Autowired
     ProcessService processService;
 
+    @Autowired
+    WorkflowTimerJobDao workflowTimerJobDao;
 
     @Override
     public WorkflowInstance getWorkflowInstanceById(String id) {
@@ -69,29 +74,14 @@ public class WorkflowRuntimeQueryImpl implements WorkflowRuntimeQuery {
     }
 
     @Override
-    public List<WorkflowTimerInstance> getWorkflowTimerInstancesOnTask(String workflowInstanceTaskId) {
-        WorkflowTaskInstance taskInstance = workflowTaskInstanceDao.getById(workflowInstanceTaskId);
-        TaskObject taskObject = processService.getTaskById(taskInstance.getProcessTaskId()).get();
-        List<TaskTimer> taskTimers = processService.getTaskTimers(taskObject.getProcessId(), taskObject.getExecutionId());
-        List<WorkflowTimerInstance> timerInstances = Lists.newArrayList();
-        taskTimers.forEach(timer->{
-            WorkflowTimerInstance workflowTimerInstance = new WorkflowTimerInstance();
-            BeanUtils.copyProperties(timer, workflowTimerInstance);
-            timerInstances.add(workflowTimerInstance);
-        });
-        return timerInstances;
+    public List<WorkflowTimerJob> getWorkflowTimerJobsOnTask(String workflowInstanceTaskId) {
+        List<WorkflowTimerJob> workflowTimerJobs = workflowTimerJobDao.lambdaQuery().eq(WorkflowTimerJob::getWorkflowTaskInstanceId, workflowInstanceTaskId).list();
+        return workflowTimerJobs;
     }
 
     @Override
-    public List<WorkflowTimerInstance> getWorkflowTimerInstancesOnWorkflow(String workflowInstanceId) {
-        WorkflowInstance workflowInstance = workflowInstanceDao.getById(workflowInstanceId);
-        List<TaskTimer> taskTimers = processService.getTaskTimers(workflowInstance.getProcessId());
-        List<WorkflowTimerInstance> timerInstances = Lists.newArrayList();
-        taskTimers.forEach(timer->{
-            WorkflowTimerInstance workflowTimerInstance = new WorkflowTimerInstance();
-            BeanUtils.copyProperties(timer, workflowTimerInstance);
-            timerInstances.add(workflowTimerInstance);
-        });
-        return timerInstances;
+    public List<WorkflowTimerJob> getWorkflowTimerJobsOnWorkflow(String workflowInstanceId) {
+        List<WorkflowTimerJob> workflowTimerJobs = workflowTimerJobDao.lambdaQuery().eq(WorkflowTimerJob::getWorkflowInstanceId, workflowInstanceId).list();
+        return workflowTimerJobs;
     }
 }

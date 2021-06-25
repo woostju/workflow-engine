@@ -1,5 +1,6 @@
 package com.github.bryxtest;
 
+import com.github.bryx.workflow.domain.WorkflowTaskInstance;
 import com.github.bryx.workflow.domain.process.runtime.TaskObject;
 import com.github.bryx.workflow.domain.process.runtime.TaskObjectAssignee;
 import com.github.bryx.workflow.domain.WorkflowDef;
@@ -42,7 +43,7 @@ public class ApplyLeaveInterceptor implements WorkflowInstanceInterceptor {
     }
 
     @Override
-    public void createTimerWhenExtensionConfigured(WorkflowInstance workflowInstance, TaskObject taskObject, WorkflowDefProcessConfig.TimerConfig timerConfig) {
+    public void createTimerJobWhenExtensionConfigured(WorkflowInstance workflowInstance, WorkflowTaskInstance taskInstance, WorkflowDefProcessConfig.TimerConfig timerConfig) {
 
     }
 

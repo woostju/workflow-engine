@@ -17,6 +17,8 @@ import com.github.bryx.workflow.util.StringUtil;
 import com.google.common.collect.Sets;
 import lombok.Data;
 import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
@@ -26,13 +28,16 @@ import java.util.stream.Collectors;
  * @Author jameswu
  * @Date 2021/6/17
  **/
-@Data
+@Service
 public class WorkflowBuildTimeQueryImpl implements WorkflowBuildTimeQuery {
 
+    @Autowired
     WorkflowDefRevDao workflowDefRevDao;
 
+    @Autowired
     WorkflowObjectEntityRelationDao workflowObjectEntityRelationDao;
 
+    @Autowired
     WorkflowDefDao workflowDefDao;
 
     @Override

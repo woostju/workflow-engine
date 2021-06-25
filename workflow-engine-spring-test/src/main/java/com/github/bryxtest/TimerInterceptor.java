@@ -1,11 +1,12 @@
 package com.github.bryxtest;
 
+import com.github.bryx.workflow.domain.WorkflowTaskInstance;
 import com.github.bryx.workflow.domain.process.runtime.TaskObject;
 import com.github.bryx.workflow.domain.process.runtime.TaskObjectAssignee;
 import com.github.bryx.workflow.domain.WorkflowDef;
 import com.github.bryx.workflow.domain.WorkflowDefProcessConfig;
 import com.github.bryx.workflow.domain.WorkflowInstance;
-import com.github.bryx.workflow.dto.runtime.CreateWorkflowTimerInstanceDto;
+import com.github.bryx.workflow.dto.runtime.CreateWorkflowTimerJobDto;
 import com.github.bryx.workflow.event.WorkflowEvent;
 import com.github.bryx.workflow.interceptor.Interceptor;
 import com.github.bryx.workflow.interceptor.WorkflowInstanceInterceptor;
@@ -39,20 +40,9 @@ public class TimerInterceptor implements WorkflowInstanceInterceptor {
     }
 
     @Override
-    public void createTimerWhenExtensionConfigured(WorkflowInstance workflowInstance, TaskObject taskObject, WorkflowDefProcessConfig.TimerConfig timerConfig) {
+    public void createTimerJobWhenExtensionConfigured(WorkflowInstance workflowInstance, WorkflowTaskInstance taskInstance, WorkflowDefProcessConfig.TimerConfig timerConfig) {
             if (timerConfig.getTimerDefinitionId().equals("timer2")){
-                workflowRuntimeService.createWorkflowTimerInstance(CreateWorkflowTimerInstanceDto.builder()
-                        .processTaskId(taskObject.getId())
-                        .timerDefinitionId(timerConfig.getTimerDefinitionId())
-                        .duration(30)
-                        .timeUnit(TimeUnit.SECONDS)
-                        .build());
-                workflowRuntimeService.createWorkflowTimerInstance(CreateWorkflowTimerInstanceDto.builder()
-                        .processTaskId(taskObject.getId())
-                        .timerDefinitionId(timerConfig.getTimerDefinitionId())
-                        .duration(60)
-                        .timeUnit(TimeUnit.SECONDS)
-                        .build());
+                workflowRuntimeService.createWorkflowTimerJob(CreateWorkflowTimerJobDto.ofTypeDuration(taskInstance.getId(), timerConfig.getTimerDefinitionId(), 30, TimeUnit.SECONDS));
             }
     }
 

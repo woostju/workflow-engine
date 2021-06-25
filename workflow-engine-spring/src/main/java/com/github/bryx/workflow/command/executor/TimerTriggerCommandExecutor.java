@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  **/
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class TimerTriggerCommandExecutor extends BaseCommandExecutor<Void, TimerTriggerCommand> {
+public class TimerTriggerCommandExecutor extends CommandExecutor<Void, TimerTriggerCommand> {
 
     @Autowired
     WorkflowBuildTimeService workflowBuildTimeService;

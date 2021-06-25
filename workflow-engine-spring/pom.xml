@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.bryx</groupId>
     <artifactId>workflow-engine-spring</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>workflow-engine-spring</name>
     <description>Workflow Engine based on activiti 6.0.0</description>
 

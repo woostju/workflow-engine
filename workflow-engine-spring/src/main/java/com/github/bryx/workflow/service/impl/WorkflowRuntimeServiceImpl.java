@@ -1,10 +1,12 @@
 package com.github.bryx.workflow.service.impl;
 
-import com.github.bryx.workflow.exception.WorkflowRuntimeException;
+import com.github.bryx.workflow.domain.WorkflowTimerJob;
+import com.github.bryx.workflow.domain.process.buildtime.TaskTimer;
+import com.github.bryx.workflow.service.dao.WorkflowTimerJobDao;
 import com.github.bryx.workflow.service.process.ProcessService;
 import com.github.bryx.workflow.command.*;
 import com.github.bryx.workflow.service.dao.WorkflowInstanceDao;
-import com.github.bryx.workflow.command.executor.BaseCommandExecutor;
+import com.github.bryx.workflow.command.executor.CommandExecutor;
 import com.github.bryx.workflow.domain.WorkflowInstance;
 import com.github.bryx.workflow.domain.WorkflowTaskInstance;
 import com.github.bryx.workflow.domain.WorkflowTimerInstance;
@@ -13,7 +15,6 @@ import com.github.bryx.workflow.service.WorkflowBuildTimeService;
 import com.github.bryx.workflow.service.WorkflowRuntimeQuery;
 import com.github.bryx.workflow.service.WorkflowRuntimeService;
 import com.github.bryx.workflow.service.dao.WorkflowTaskInstanceDao;
-import com.github.bryx.workflow.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.BeanUtils;
@@ -40,111 +41,115 @@ public class WorkflowRuntimeServiceImpl implements WorkflowRuntimeService, Initi
     WorkflowTaskInstanceDao workflowTaskInstanceDao;
 
     @Autowired
+    WorkflowTimerJobDao workflowTimerJobDao;
+
+    @Autowired
     ProcessService processService;
 
     @Autowired
     WorkflowBuildTimeService workflowBuildTimeService;
 
+    @Autowired
     WorkflowRuntimeQuery workflowRuntimeQuery;
 
     @Override
     public String start(String workflowDefId, Map<String, Object> formData, String executorId) {
-        StartCommand startCommand = StartCommand.builder()
+        StartWorkflowInstanceCommand startWorkflowInstanceCommand = StartWorkflowInstanceCommand.builder()
                 .workflowDefId(workflowDefId)
                 .formData(formData)
                 .executorId(executorId).build();
-        return BaseCommandExecutor.<String, StartCommand>execute(startCommand);
+        return CommandExecutor.<String, StartWorkflowInstanceCommand>execute(startWorkflowInstanceCommand);
     }
 
     @Override
     public List<String> rejectBack(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, String executorId) {
-        RejectBackCommand command = RejectBackCommand.builder()
+        RejectBackUserTaskCommand command = RejectBackUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .formData(formData)
                 .build();
-        return BaseCommandExecutor.<List<String>, RejectBackCommand>execute(command);
+        return CommandExecutor.<List<String>, RejectBackUserTaskCommand>execute(command);
     }
 
     @Override
     public List<String> rejectBackAndAssign(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, List<String> assignUserIds, List<String> assigneeGroupIds, String executorId) {
-        RejectBackCommand command = RejectBackCommand.builder()
+        RejectBackUserTaskCommand command = RejectBackUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .formData(formData)
-                .assigneeIds(assignUserIds)
+                .assigneeUserIds(assignUserIds)
                 .assigneeGroupIds(assigneeGroupIds)
                 .build();
-        return BaseCommandExecutor.<List<String>, RejectBackCommand>execute(command);
+        return CommandExecutor.<List<String>, RejectBackUserTaskCommand>execute(command);
     }
 
     @Override
     public void claim(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, String executorId) {
-        ClaimCommand command = ClaimCommand.builder()
+        ClaimUserTaskCommand command = ClaimUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .build();
-        BaseCommandExecutor.<Void, ClaimCommand>execute(command);
+        CommandExecutor.<Void, ClaimUserTaskCommand>execute(command);
     }
 
     @Override
     public void transfer(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, List<String> assignUserIds, List<String> assigneeGroupIds, String executorId) {
-        TransferCommand command = TransferCommand.builder()
+        TransferUserTaskCommand command = TransferUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .formData(formData)
-                .assigneeIds(assignUserIds)
+                .assigneeUserIds(assignUserIds)
                 .assigneeGroupIds(assigneeGroupIds)
                 .build();
-        BaseCommandExecutor.<Void, TransferCommand>execute(command);
+        CommandExecutor.<Void, TransferUserTaskCommand>execute(command);
     }
 
     @Override
     public void modify(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, String executorId) {
-        ModifyCommand command = ModifyCommand.builder()
+        ModifyUserTaskCommand command = ModifyUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .formData(formData)
                 .build();
-        BaseCommandExecutor.<Void, ModifyCommand>execute(command);
+        CommandExecutor.<Void, ModifyUserTaskCommand>execute(command);
     }
 
     @Override
     public List<String> submit(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, String executorId) {
-        SubmitCommand command = SubmitCommand.builder()
+        SubmitUserTaskCommand command = SubmitUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .formData(formData)
                 .build();
-        return BaseCommandExecutor.<List<String>, SubmitCommand>execute(command);
+        return CommandExecutor.<List<String>, SubmitUserTaskCommand>execute(command);
     }
 
     @Override
     public List<String> submitAndAssign(String workflowInstanceId, String workflowInstanceTaskId, Map<String, Object> formData, List<String> assignUserIds, List<String> assigneeGroupIds, String executorId) {
-        SubmitCommand command = SubmitCommand.builder()
+        SubmitUserTaskCommand command = SubmitUserTaskCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .workflowTaskInstanceId(workflowInstanceTaskId)
                 .executorId(executorId)
                 .formData(formData)
-                .assigneeIds(assignUserIds)
+                .assigneeUserIds(assignUserIds)
                 .assigneeGroupIds(assigneeGroupIds)
                 .build();
-        return BaseCommandExecutor.<List<String>, SubmitCommand>execute(command);
+        return CommandExecutor.<List<String>, SubmitUserTaskCommand>execute(command);
     }
 
     @Override
     public void close(String workflowInstanceId, String executorId) {
-        CloseCommand command = CloseCommand.builder()
+        CloseWorkflowInstanceCommand command = CloseWorkflowInstanceCommand.builder()
                 .workflowInstanceId(workflowInstanceId)
                 .executorId(executorId)
                 .build();
-        BaseCommandExecutor.<Void, CloseCommand>execute(command);
+        CommandExecutor.<Void, CloseWorkflowInstanceCommand>execute(command);
     }
 
 
@@ -165,7 +170,7 @@ public class WorkflowRuntimeServiceImpl implements WorkflowRuntimeService, Initi
     }
 
     @Override
-    public String createWorkflowTaskInstance(CreateWorkflowTaskInstanceDto dto) {
+    public WorkflowTaskInstance createWorkflowTaskInstance(CreateWorkflowTaskInstanceDto dto) {
         Validate.notNull(dto.getName(), "must provide task name");
         Validate.notNull(dto.getProcessTaskId(), "must provide actitivi process task id");
         Validate.notNull(dto.getWorkflowInstanceId(), "must provide workflow instance id");
@@ -174,27 +179,43 @@ public class WorkflowRuntimeServiceImpl implements WorkflowRuntimeService, Initi
         taskInstance.setStartTime(new Date());
         taskInstance.setStatus(WorkflowTaskInstance.WorkflowTaskInstanceStatus.ONGOING);
         workflowTaskInstanceDao.save(taskInstance);
-        return taskInstance.getId();
+        return taskInstance;
     }
 
     @Override
-    public void createWorkflowTimerInstance(CreateWorkflowTimerInstanceDto createWorkflowTimerInstanceDto){
-        String processTaskId = null;
-        if (StringUtil.isNotEmpty(createWorkflowTimerInstanceDto.getWorkflowTaskInstanceId())){
-            WorkflowTaskInstance workflowTaskInstance = workflowTaskInstanceDao.getById(createWorkflowTimerInstanceDto.getWorkflowTaskInstanceId());
-            processTaskId = workflowTaskInstance.getProcessTaskId();
-        }else{
-            processTaskId = createWorkflowTimerInstanceDto.getProcessTaskId();
+    public String createWorkflowTimerJob(CreateWorkflowTimerJobDto createWorkflowTimerJobDto){
+        Validate.notNull(createWorkflowTimerJobDto.getWorkflowTaskInstanceId(), "please specify valid processTaskId");
+        WorkflowTaskInstance workflowTaskInstance = workflowTaskInstanceDao.getById(createWorkflowTimerJobDto.getWorkflowTaskInstanceId());
+        Validate.notNull(workflowTaskInstance, "Workflow task instance does not exist");
+        Validate.notNull(createWorkflowTimerJobDto.getTimerDefinitionId(), "please specify timeDefinitionId");
+        TaskTimer timer = null;
+        switch (createWorkflowTimerJobDto.getType()){
+            case CRON:
+                timer = processService.addTimerOnTask(workflowTaskInstance.getProcessTaskId(), createWorkflowTimerJobDto.getTimerDefinitionId() , createWorkflowTimerJobDto.getCron(), createWorkflowTimerJobDto.getEndDate());
+                break;
+            case CYCLE:
+                timer = processService.addTimerOnTask(workflowTaskInstance.getProcessTaskId(), createWorkflowTimerJobDto.getTimerDefinitionId(), createWorkflowTimerJobDto.getRepeat(), createWorkflowTimerJobDto.getDuration(), createWorkflowTimerJobDto.getTimeUnit(), createWorkflowTimerJobDto.getEndDate());
+                break;
+            case DURATION:
+                timer = processService.addTimerOnTask(workflowTaskInstance.getProcessTaskId(), createWorkflowTimerJobDto.getTimerDefinitionId(), createWorkflowTimerJobDto.getDuration(), createWorkflowTimerJobDto.getTimeUnit());
+                break;
+            case FIXED_DATE:
+                timer = processService.addTimerOnTask(workflowTaskInstance.getProcessTaskId(), createWorkflowTimerJobDto.getTimerDefinitionId(), createWorkflowTimerJobDto.getFixedDate());
+                break;
         }
-        Validate.notNull(processTaskId, "please specify valid workflowTaskInstanceId or processTaskId");
-        Validate.notNull(createWorkflowTimerInstanceDto.getTimerDefinitionId(), "please specify timeDefinitionId");
-        if (StringUtil.isNotEmpty(createWorkflowTimerInstanceDto.getCron())){
-            processService.addTimerToTask(processTaskId, createWorkflowTimerInstanceDto.getTimerDefinitionId(), createWorkflowTimerInstanceDto.getCron());
-        }else if(createWorkflowTimerInstanceDto.getDuration()!=null && createWorkflowTimerInstanceDto.getTimeUnit()!=null){
-            processService.addTimerToTask(processTaskId, createWorkflowTimerInstanceDto.getTimerDefinitionId(), createWorkflowTimerInstanceDto.getDuration(), createWorkflowTimerInstanceDto.getTimeUnit());
-        }else{
-            throw new WorkflowRuntimeException("could not create timer instance, either cron or duration timeunit specified");
-        }
+        Validate.notNull(timer, "fail to create timer");
+        WorkflowTimerJob workflowTimerJob = WorkflowTimerJob.builder()
+                .addon(createWorkflowTimerJobDto.getAddon())
+                .workflowInstanceId(workflowTaskInstance.getWorkflowInstanceId())
+                .workflowTaskInstanceId(workflowTaskInstance.getId())
+                .endDate(createWorkflowTimerJobDto.getEndDate())
+                .status(WorkflowTimerJob.Status.CREATED)
+                .processTimerDefId(createWorkflowTimerJobDto.getTimerDefinitionId())
+                .processTimerJobId(timer.getJobId())
+                .nextTriggerTime(timer.getTriggerTime())
+                .build();
+        workflowTimerJobDao.save(workflowTimerJob);
+        return workflowTimerJob.getId();
     }
 
     @Override
@@ -233,14 +254,7 @@ public class WorkflowRuntimeServiceImpl implements WorkflowRuntimeService, Initi
 
     @Override
     public WorkflowRuntimeQuery query() {
-        if (this.workflowRuntimeQuery == null){
-            WorkflowRuntimeQueryImpl workflowRuntimeQueryImpl = new WorkflowRuntimeQueryImpl();
-            workflowRuntimeQueryImpl.setProcessService(this.processService);
-            workflowRuntimeQueryImpl.setWorkflowInstanceDao(this.workflowInstanceDao);
-            workflowRuntimeQueryImpl.setWorkflowTaskInstanceDao(this.workflowTaskInstanceDao);
-            this.workflowRuntimeQuery = workflowRuntimeQueryImpl;
-        }
-        return this.workflowRuntimeQuery;
+        return workflowRuntimeQuery;
     }
 
     @Override
@@ -260,7 +274,7 @@ public class WorkflowRuntimeServiceImpl implements WorkflowRuntimeService, Initi
                             .workflowTaskInstance(workflowTaskInstance)
                             .workflowTimerInstance(timerInstance)
                             .build();
-                    BaseCommandExecutor.<Void, TimerTriggerCommand>execute(command);
+                    CommandExecutor.<Void, TimerTriggerCommand>execute(command);
                 }
             }catch (Exception e){
                 log.error("timer trigger error", e);

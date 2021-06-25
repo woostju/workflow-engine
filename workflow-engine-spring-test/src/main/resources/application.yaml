@@ -3,10 +3,3 @@ spring:
         name: workflow-engine-spring-test
     profiles:
         active: mysql
-
-#
-##分页插件
-#pagehelper:
-#    reasonable: false
-#    support-methods-arguments: true
-#    params: count=countsql

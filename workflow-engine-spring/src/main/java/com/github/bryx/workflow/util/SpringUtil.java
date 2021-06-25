@@ -1,6 +1,5 @@
 package com.github.bryx.workflow.util;
 
-import com.github.bryx.workflow.command.executor.BaseCommandExecutor;
 import org.springframework.context.ApplicationContext;
 
 /**

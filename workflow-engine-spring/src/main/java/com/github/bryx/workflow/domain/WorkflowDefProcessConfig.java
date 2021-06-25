@@ -33,8 +33,8 @@ public class WorkflowDefProcessConfig {
     public static class TimerConfig {
         @ApiModelProperty(value = "timerDefinitionId",required = false, hidden = true)
         String timerDefinitionId;
-        @ApiModelProperty(value = "cron")
-        String cron;
+        @ApiModelProperty(value = "repeat")
+        Integer repeat;
         @ApiModelProperty(value = "duration")
         Integer duration;
         @ApiModelProperty(value = "duration单位", notes = "DAYS, MINUTES, HOURS, SECONDS")

@@ -44,13 +44,16 @@ import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.delegate.event.ActivitiEvent;
+import org.activiti.engine.delegate.event.impl.ActivitiEntityEventImpl;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
+import org.activiti.engine.impl.persistence.entity.JobEntity;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.activiti.engine.impl.persistence.entity.TimerJobEntity;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.Job;
@@ -370,45 +373,41 @@ public class ProcessServiceImpl implements ProcessService{
 		});
 	}
 
-	@Transactional
-	public void addTimerToTask(String taskId, String timerBoudryElementId, int duration, TimeUnit timeUnit) {
-		String timeDuration = "PT%d%s";
-		switch (timeUnit){
-			case DAYS:
-				timeDuration = String.format(timeDuration, duration, "D");
-				break;
-			case MINUTES:
-				timeDuration = String.format(timeDuration, duration, "M");
-				break;
-			case SECONDS:
-				timeDuration = String.format(timeDuration, duration, "S");
-				break;
-			case HOURS:
-				timeDuration = String.format(timeDuration, duration, "H");
-				break;
-			default:
-				throw new ProcessRuntimeException("only support Days, MINUTES, HOURS, SECONDS for timer");
-		}
-		this.addTimerToTask_(taskId, timerBoudryElementId, CreateTimerCmd.TimerEventDefinitionType.TIME_DURATION, timeDuration);
-
-    }
 
 	@Override
-	public void addTimerToTask(String taskId, String timerBoudryElementId, String cron) {
-    	this.addTimerToTask_(taskId, timerBoudryElementId, CreateTimerCmd.TimerEventDefinitionType.TIME_CYCLE, cron);
-
+	public TaskTimer addTimerOnTask(String taskId, String timerBoudryElementId, int duration, TimeUnit timeUnit) {
+		return this.addTimerOnTask_(taskId, timerBoudryElementId, CreateTimerCmd.ofTypeDuration(taskId, duration, timeUnit));
 	}
 
-	private void addTimerToTask_(String taskId, String timerBoudryElementId,CreateTimerCmd.TimerEventDefinitionType timerEventDefinitionType, String timerValue){
-		TaskEntity task = (TaskEntity) taskService.createTaskQuery().taskId(taskId).singleResult();
+	@Override
+	public TaskTimer addTimerOnTask(String taskId, String timerBoudryElementId, int repeat, int interval, TimeUnit intervalTimeUnit, Date endDate) {
+		return this.addTimerOnTask_(taskId, timerBoudryElementId, CreateTimerCmd.ofTypeCycle(taskId, repeat, interval, intervalTimeUnit, endDate));
+	}
+
+	@Override
+	public TaskTimer addTimerOnTask(String taskId, String timerBoudryElementId, Date fixedDate) {
+		return this.addTimerOnTask_(taskId, timerBoudryElementId, CreateTimerCmd.ofTypeFixedDate(taskId, fixedDate));
+	}
+
+	@Override
+	public TaskTimer addTimerOnTask(String taskId, String timerBoudryElementId, String cron, Date endDate) {
+		return this.addTimerOnTask_(taskId, timerBoudryElementId, CreateTimerCmd.ofTypeCron(taskId, cron, endDate));
+	}
+
+	private TaskTimer addTimerOnTask_(String taskId, String timerBoudryElementId, CreateTimerCmd createTimerCmd){
+		TaskEntity task = (TaskEntity) taskService.createTaskQuery().taskId(createTimerCmd.getTaskId()).singleResult();
 		Process process = processDefinitionService.getProcessModel(task.getProcessDefinitionId());
 		// 从模型上获取到当前的task节点
 		BoundaryEvent timerBoudry = (BoundaryEvent)process.getFlowElement(timerBoudryElementId, true);
 		CommandExecutor commandExecutor = processEngineConfiguration.getCommandExecutor();
-
-		commandExecutor.execute(new CreateTimerCmd(timerBoudry, taskId, timerEventDefinitionType, timerValue));
-		log.info("Success create timer on task Id:{} timerBoundryElementId:{} duration: {}", taskId, timerBoudryElementId, timerValue);
-
+		createTimerCmd.setTimerBoundaryEvent(timerBoudry);
+		createTimerCmd.setTaskId(taskId);
+		TimerJobEntity timerJobEntity = commandExecutor.execute(createTimerCmd);
+		TaskTimer timer= new TaskTimer();
+		timer.setJobId(timerJobEntity.getId());
+		timer.setTriggerTime(timerJobEntity.getDuedate());
+		log.info("Success create timer on jobId:{} taskId:{} timerBoundryElementId:{} createTimerCmd: {}",timerJobEntity.getId(), taskId, timerBoudryElementId, createTimerCmd);
+		return timer;
 	}
 
 	@Override
@@ -432,6 +431,21 @@ public class ProcessServiceImpl implements ProcessService{
 				.sorted((timer1, timer2) -> timer1.getTriggerTime().compareTo(timer2.getTriggerTime()))
 				.collect(Collectors.toList());
 		return timers;
+	}
+
+	@Override
+	public TaskTimer getTaskTimerByJobId(String timerJobId) {
+		List<Job> timeJobs = managementService.createTimerJobQuery().jobId(timerJobId).list();
+		if (CollectionUtil.isNotEmpty(timeJobs)){
+			TaskTimer timer = new TaskTimer();
+			Job job = timeJobs.get(0);
+			Map config = JSON.parseObject(job.getJobHandlerConfiguration(), HashMap.class);
+			timer.setDefinitionId((String) config.get("activityId"));
+			timer.setTriggerTime(job.getDuedate());
+			timer.setJobId(timerJobId);
+			return timer;
+		}
+		return null;
 	}
 
 	@Override
@@ -863,7 +877,7 @@ public class ProcessServiceImpl implements ProcessService{
 		}*/
 		return task;
 	}
-	
+
 	@Override
 	public void setTimerTriggerHandler(Consumer<TaskTimer> timerTriggeredHandler) {
 		this.timerTriggeredHandler = timerTriggeredHandler;
@@ -871,11 +885,12 @@ public class ProcessServiceImpl implements ProcessService{
 
 	@Override
 	public void timerEventTriggered(ActivitiEvent event) {
-		log.info("timer event triggered:" + event);
+		ActivitiEntityEventImpl activitiEntityEvent = (ActivitiEntityEventImpl) event;
+		JobEntity jobEntity = (JobEntity) activitiEntityEvent.getEntity();
+		log.info("timer event triggered timerJobId: {}", jobEntity.getId());
 		if (this.timerTriggeredHandler == null) {
 			throw new ProcessRuntimeException("Timer Trigger handler does not set");
 		}
-
 		ExecutionEntity job = (ExecutionEntity) runtimeService.createExecutionQuery()
 				.executionId(event.getExecutionId()).singleResult();
 
@@ -893,12 +908,12 @@ public class ProcessServiceImpl implements ProcessService{
 				TaskTimer timer = new TaskTimer();
 				timer.setDefinitionId(element.getId());
 				timer.setTask(taskObject);
+				timer.setJobId(jobEntity.getId());
 				log.info("found owner task：{} for timer event: {}", taskObject, event);
 				this.timerTriggeredHandler.accept(timer);
 			} else {
 				log.error("there is no active task {} on process {}", event.getProcessInstanceId(), element.getAttachedToRefId());
 			}
-
 		} else {
 			log.error("there is no active task on process {}", event.getProcessInstanceId());
 		}

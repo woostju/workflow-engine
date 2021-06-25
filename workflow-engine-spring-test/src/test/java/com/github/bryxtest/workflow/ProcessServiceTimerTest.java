@@ -60,7 +60,7 @@ class ProcessServiceTimerTest {
                 return maps;
             });
             List<TaskObject> tasks = processService.getTasks(processId);
-            processService.addTimerToTask(tasks.get(0).getId(), "timer1", 10, TimeUnit.SECONDS);
+            processService.addTimerOnTask(tasks.get(0).getId(), "timer1", 10, TimeUnit.SECONDS);
             List<TaskTimer> taskTimers = processService.getTaskTimers(processId, tasks.get(0).getExecutionId());
             List<Date> successResult = Lists.newArrayList();
             processService.setTimerTriggerHandler(task->{
@@ -98,7 +98,8 @@ class ProcessServiceTimerTest {
                 return maps;
             });
             List<TaskObject> tasks = processService.getTasks(processId);
-            processService.addTimerToTask(tasks.get(0).getId(), "timer1", "20 * * * * ?");
+            TaskTimer taskTimer = processService.addTimerOnTask(tasks.get(0).getId(), "timer1", "40 * * * * ?", null);
+            TaskTimer taskTimerByJobId = processService.getTaskTimerByJobId(taskTimer.getJobId());
             List<TaskTimer> taskTimers = processService.getTaskTimers(processId, tasks.get(0).getExecutionId());
             List<Date> successResult = Lists.newArrayList();
             processService.setTimerTriggerHandler(task->{

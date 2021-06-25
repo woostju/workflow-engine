@@ -93,22 +93,22 @@ public class WorkflowRuntimeTimerTest {
         String workflowInstanceId = workflowRuntimeService.start(workflowDef.getId(), formData, "james");
         WorkflowInstance workflowInstance = workflowRuntimeService.query().getWorkflowInstanceById(workflowInstanceId);
         List<WorkflowTaskInstance> workflowTaskInstances = workflowRuntimeService.query().getWorkflowTaskInstances(workflowInstanceId);
-        List<WorkflowTimerInstance> workflowTimerInstancesOnTask = workflowRuntimeService.query().getWorkflowTimerInstancesOnTask(workflowTaskInstances.get(0).getId());
+        List<WorkflowTimerJob> workflowTimerJobs = workflowRuntimeService.query().getWorkflowTimerJobsOnTask(workflowTaskInstances.get(0).getId());
         assertArrayEquals(new Object[]{
                     1
                 }
                 , new Object[]{
-                        workflowTimerInstancesOnTask.size()
+                        workflowTimerJobs.size()
                 });
         formData.put("level", false);
         workflowRuntimeService.submit(workflowInstanceId, workflowTaskInstances.get(0).getId(), formData, "smith");
         workflowTaskInstances = workflowRuntimeService.query().getWorkflowTaskInstances(workflowInstanceId);
-        workflowTimerInstancesOnTask = workflowRuntimeService.query().getWorkflowTimerInstancesOnTask(workflowTaskInstances.get(0).getId());
+        workflowTimerJobs = workflowRuntimeService.query().getWorkflowTimerJobsOnTask(workflowTaskInstances.get(0).getId());
         assertArrayEquals(new Object[]{
                         2
                 }
                 , new Object[]{
-                        workflowTimerInstancesOnTask.size()
+                        workflowTimerJobs.size()
                 });
         TimeUnit.SECONDS.sleep(100);
 

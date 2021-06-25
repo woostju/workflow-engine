@@ -1,5 +1,6 @@
 package com.github.bryx.workflow.interceptor;
 
+import com.github.bryx.workflow.domain.WorkflowTaskInstance;
 import com.github.bryx.workflow.domain.process.runtime.TaskObject;
 import com.github.bryx.workflow.domain.process.runtime.TaskObjectAssignee;
 import com.github.bryx.workflow.domain.WorkflowDef;
@@ -15,6 +16,10 @@ import java.util.List;
  **/
 public interface WorkflowInstanceInterceptor {
 
+    /**
+     * 处理事件
+     * @param event
+     */
     public void handleEvent(WorkflowEvent event);
 
     /**
@@ -32,5 +37,5 @@ public interface WorkflowInstanceInterceptor {
      * @param workflowInstance
      * @param timerConfig
      */
-    public void createTimerWhenExtensionConfigured(WorkflowInstance workflowInstance, TaskObject taskObject, WorkflowDefProcessConfig.TimerConfig timerConfig);
+    public void createTimerJobWhenExtensionConfigured(WorkflowInstance workflowInstance, WorkflowTaskInstance taskInstance, WorkflowDefProcessConfig.TimerConfig timerConfig);
 }
